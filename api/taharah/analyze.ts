@@ -41,7 +41,10 @@ export default async function handler(req, res) {
       amaran: "Sila semak dengan guru",
     });
 
-  } catch (err) {
-    return res.status(500).json({ error: "Server error" });
-  }
+} catch (err) {
+  console.error(err);
+
+  return res.status(500).json({
+    error: err.message || "Server error"
+  });
 }
