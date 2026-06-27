@@ -41,10 +41,11 @@ export default async function handler(req, res) {
       amaran: "Sila semak dengan guru",
     });
 
-} catch (err) {
-  console.error(err);
+  } catch (err) {
+    console.error(err);
 
-  return res.status(500).json({
-    error: err.message || "Server error"
-  });
+    return res.status(500).json({
+      error: err.message || "Server error",
+    });
+  }
 }
