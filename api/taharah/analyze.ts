@@ -12,15 +12,28 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Tiada gambar" });
     }
 
-    // 🔑 API KEY dari Vercel env
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    // 🤖 MODEL BETUL (fix error 404 tadi)
+    if (!apiKey) {
+      return res.status(500).json({ error: "API key tidak ditemui" });
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+
+    // ✅ GUNA MODEL STABLE
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash-latest",
+      model: "gemini-1.5-flash",
     });
 
-    // 🧠 CALL GEMINI
+    const prompt = `
+Analisis gambar ini untuk Fiqh Taharah.
+Berikan:
+- jenis air
+- status (sah/tidak sah)
+- penjelasan ringkas
+Jawapan Bahasa Melayu.
+`;
+
     const result = await model.generateContent([
       {
         inlineData: {
@@ -28,7 +41,7 @@ export default async function handler(req, res) {
           mimeType: mimeType || "image/jpeg",
         },
       },
-      "Analisis jenis air untuk fiqh taharah. Jawab ringkas dan jelas dalam Bahasa Melayu.",
+      prompt,
     ]);
 
     const text = result.response.text();
@@ -39,16 +52,17 @@ export default async function handler(req, res) {
       status_penggunaan: "Sesuai / Tidak sesuai",
       keyakinan: "85%",
       analisis_ai: text,
-      penerangan_pendidikan: "Rujukan fiqh air mutlak, mutaghayyir dan mutanajjis",
-      cadangan: "Gunakan jika air suci dan tidak tercemar",
-      amaran: "Sila semak dengan guru atau rujukan kitab fiqh",
+      penerangan_pendidikan: "Fiqh Air Mutlak / Musta'mal / Mutanajjis",
+      cadangan: "Gunakan jika air suci",
+      amaran: "Rujuk guru jika ragu",
     });
 
   } catch (err) {
-    console.error("GEMINI ERROR:", err);
+    console.error("ERROR GEMINI:", err);
 
     return res.status(500).json({
-      error: err.message || "Server error",
+      error: "Server error",
+      detail: err.message,
     });
   }
 }
